@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.PeisongrenyuanjiankangDao">
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        a.id as id
+        ,a.peisongrenyuan_id as peisongrenyuanId
+        ,a.jiance_time as jianceTime
+        ,a.jiance_types as jianceTypes
+        ,a.peisongrenyuanjiankang_file as peisongrenyuanjiankangFile
+        ,a.peisongrenyuanjiankang_content as peisongrenyuanjiankangContent
+        ,a.insert_time as insertTime
+        ,a.create_time as createTime
+    </sql>
+    <select id="selectListView" parameterType="map" resultType="com.entity.view.PeisongrenyuanjiankangView" >
+        SELECT
+        <include refid="Base_Column_List" />
+
+--         级联表的字段
+        ,peisongrenyuan.peisongrenyuan_name as peisongrenyuanName
+        ,peisongrenyuan.peisongrenyuan_phone as peisongrenyuanPhone
+        ,peisongrenyuan.peisongrenyuan_id_number as peisongrenyuanIdNumber
+        ,peisongrenyuan.peisongrenyuan_photo as peisongrenyuanPhoto
+        ,peisongrenyuan.peisongrenyuan_email as peisongrenyuanEmail
+
+        FROM peisongrenyuanjiankang  a
+        left JOIN peisongrenyuan peisongrenyuan ON a.peisongrenyuan_id = peisongrenyuan.id
+
+        <where>
+            <if test="params.ids != null">
+                and a.id in
+                <foreach item="item" index="index" collection="params.ids" open="(" separator="," close=")">
+                #{item}
+                </foreach>
+            </if>
+            <if test="params.peisongrenyuanId != null and params.peisongrenyuanId != ''">
+                and (
+                    a.peisongrenyuan_id = #{params.peisongrenyuanId}
+                )
+            </if>
+            <if test=" params.jianceTimeStart != '' and params.jianceTimeStart != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.jiance_time) >= UNIX_TIMESTAMP(#{params.jianceTimeStart}) ]]>
+            </if>
+            <if test=" params.jianceTimeEnd != '' and params.jianceTimeEnd != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.jiance_time) <= UNIX_TIMESTAMP(#{params.jianceTimeEnd}) ]]>
+            </if>
+            <if test="params.jianceTypes != null and params.jianceTypes != ''">
+                and a.jiance_types = #{params.jianceTypes}
+            </if>
+            <if test=" params.peisongrenyuanjiankangContent != '' and params.peisongrenyuanjiankangContent != null and params.peisongrenyuanjiankangContent != 'null' ">
+                and a.peisongrenyuanjiankang_content like CONCAT('%',#{params.peisongrenyuanjiankangContent},'%')
+            </if>
+            <if test=" params.insertTimeStart != '' and params.insertTimeStart != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.insert_time) >= UNIX_TIMESTAMP(#{params.insertTimeStart}) ]]>
+            </if>
+            <if test=" params.insertTimeEnd != '' and params.insertTimeEnd != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.insert_time) <= UNIX_TIMESTAMP(#{params.insertTimeEnd}) ]]>
+            </if>
+
+                <!-- 判断配送人员的id不为空 -->
+            <if test=" params.peisongrenyuanIdNotNull != '' and params.peisongrenyuanIdNotNull != null and params.peisongrenyuanIdNotNull != 'null' ">
+                and a.peisongrenyuan_id IS NOT NULL
+            </if>
+            <if test=" params.peisongrenyuanName != '' and params.peisongrenyuanName != null and params.peisongrenyuanName != 'null' ">
+                and peisongrenyuan.peisongrenyuan_name like CONCAT('%',#{params.peisongrenyuanName},'%')
+            </if>
+            <if test=" params.peisongrenyuanPhone != '' and params.peisongrenyuanPhone != null and params.peisongrenyuanPhone != 'null' ">
+                and peisongrenyuan.peisongrenyuan_phone like CONCAT('%',#{params.peisongrenyuanPhone},'%')
+            </if>
+            <if test=" params.peisongrenyuanIdNumber != '' and params.peisongrenyuanIdNumber != null and params.peisongrenyuanIdNumber != 'null' ">
+                and peisongrenyuan.peisongrenyuan_id_number like CONCAT('%',#{params.peisongrenyuanIdNumber},'%')
+            </if>
+            <if test=" params.peisongrenyuanEmail != '' and params.peisongrenyuanEmail != null and params.peisongrenyuanEmail != 'null' ">
+                and peisongrenyuan.peisongrenyuan_email like CONCAT('%',#{params.peisongrenyuanEmail},'%')
+            </if>
+        </where>
+        order by a.${params.sort} ${params.order}
+    </select>
+
+</mapper>
